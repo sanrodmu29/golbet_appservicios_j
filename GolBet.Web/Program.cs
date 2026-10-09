@@ -4,11 +4,18 @@ using GolBet.Repositories.Interfaces;
 using GolBet.Services.Implementations;
 using GolBet.Services.Interfaces;
 using GolBet.Services.Mapping;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Spanish (Colombia) dates, but "." as decimal separator so odds parse the same in forms and views
+var colombia = (CultureInfo)CultureInfo.GetCultureInfo("es-CO").Clone();
+colombia.NumberFormat.NumberDecimalSeparator = ".";
+CultureInfo.DefaultThreadCurrentCulture = colombia;
+CultureInfo.DefaultThreadCurrentUICulture = colombia;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -29,6 +36,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Business services
 builder.Services.AddScoped<IMatchService, MatchService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 
 var app = builder.Build();

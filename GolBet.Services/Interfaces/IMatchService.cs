@@ -5,9 +5,13 @@ namespace GolBet.Services.Interfaces;
 
 public interface IMatchService
 {
-    /// <summary>Match board: all active matches ordered by date, optionally filtered by status.</summary>
+    // Reads (Modules 4 and 5)
     Task<IEnumerable<MatchDto>> GetBoardAsync(MatchStatus? status = null);
-
-    /// <summary>Single match with teams and bets. Null when it does not exist.</summary>
     Task<MatchDetailDto?> GetDetailAsync(int id);
+
+    // Writes (Module 6)
+    Task<MatchFormDto?> GetForEditAsync(int id);
+    Task CreateAsync(MatchFormDto dto);
+    Task UpdateAsync(MatchFormDto dto);
+    Task DeactivateAsync(int id);
 }

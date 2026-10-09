@@ -1,0 +1,51 @@
+@* GolBet.Web/Views/Matches/Admin.cshtml *@
+@using GolBet.Web.Helpers
+@model IEnumerable<GolBet.Services.DTOs.MatchDto>
+@{
+    ViewData["Title"] = "Administrar partidos";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>🛠️ Administrar partidos</h2>
+    <a asp-action="Create" class="btn btn-success">Nuevo partido</a>
+</div>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger">@error</div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Fecha (Colombia)</th>
+                <th>Partido</th>
+                <th>Estado</th>
+                <th>Marcador</th>
+                <th>Cuotas 1 / X / 2</th>
+                <th class="text-end">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var match in Model)
+        {
+            <tr>
+                <td>@match.Date.ToColombiaTime().ToString("dd/MM/yyyy h:mm tt")</td>
+                <td>@match.HomeTeamName vs @match.AwayTeamName</td>
+                <td>@match.Status</td>
+                <td>@(match.HomeGoals is null ? "—" : $"{match.HomeGoals} - {match.AwayGoals}")</td>
+                <td>@match.HomeOdds.ToString("0.00") / @match.DrawOdds.ToString("0.00") / @match.AwayOdds.ToString("0.00")</td>
+                <td class="text-end text-nowrap">
+                    <a asp-action="Edit" asp-route-id="@match.Id" class="btn btn-sm btn-outline-primary">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@match.Id" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

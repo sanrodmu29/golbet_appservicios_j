@@ -1,0 +1,20 @@
+@* GolBet.Web/Views/Matches/Delete.cshtml *@
+@using GolBet.Web.Helpers
+@model GolBet.Services.DTOs.MatchDetailDto
+@{
+    ViewData["Title"] = "Eliminar partido";
+}
+
+<h2 class="mb-3">Eliminar partido</h2>
+
+<div class="alert alert-warning">
+    ¿Seguro que quieres eliminar <strong>@Model.HomeTeamName vs @Model.AwayTeamName</strong>
+    (@Model.Date.ToColombiaTime().ToString("dd/MM/yyyy h:mm tt"))?
+    <br />
+    El partido se desactiva; no se borra de la base de datos. Apuestas asociadas: @Model.TotalBets.
+</div>
+
+<form method="post">
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a asp-action="Admin" class="btn btn-outline-secondary">Cancelar</a>
+</form>
