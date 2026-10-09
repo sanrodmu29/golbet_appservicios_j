@@ -1,4 +1,3 @@
-﻿// GolBet.Services/Mapping/MappingProfile.cs
 using AutoMapper;
 using GolBet.Entities;
 using GolBet.Services.DTOs;
@@ -10,9 +9,13 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         // Flattening by convention:
-        // MatchDto.HomeTeamName  <- Match.HomeTeam.Name
+        // MatchDto.HomeTeamName <- Match.HomeTeam.Name
         // MatchDto.AwayTeamCrestUrl <- Match.AwayTeam.CrestUrl
-        CreateMap<Match, MatchDto>();                      // SE CREA EL MAPEO ENTRE LA ENTIDAD MATCH Y EL DTO MATCHDTO, UTILIZANDO AUTOMAPPER. ESTO PERMITE QUE CUANDO SE OBTENGA UN OBJETO MATCH DE LA BASE DE DATOS, SE PUEDA CONVERTIR AUTOMATICAMENTE A UN OBJETO MATCHDTO PARA SER ENVIADO AL FRONTEND, SIN NECESIDAD DE HACER EL MAPEADO MANUALMENTE.
-    }
-}// SIRVE PARA CONFIGURAR EL MAPEADO ENTRE LA ENTIDAD MATCH Y EL DTO MATCHDTO, UTILIZANDO AUTOMAPPER. ESTO PERMITE QUE CUANDO SE OBTENGA UN OBJETO MATCH DE LA BASE DE DATOS, SE PUEDA CONVERTIR AUTOMATICAMENTE A UN OBJETO MATCHDTO PARA SER ENVIADO AL FRONTEND, SIN NECESIDAD DE HACER EL MAPEADO MANUALMENTE.
+        CreateMap<Match, MatchDto>();
 
+        // Detail (Module 5): inherits the board fields, adds TotalBets explicitly
+        CreateMap<Match, MatchDetailDto>()
+            .ForMember(dto => dto.TotalBets,
+                       options => options.MapFrom(match => match.Bets.Count));
+    }
+}

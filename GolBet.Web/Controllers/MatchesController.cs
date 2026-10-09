@@ -1,4 +1,5 @@
-﻿// GolBet.Web/Controllers/MatchesController.cs
+// GolBet.Web/Controllers/MatchesController.cs
+using GolBet.Entities.Enums;
 using GolBet.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +12,19 @@ public class MatchesController : Controller
     public MatchesController(IMatchService matchService)
         => _matchService = matchService;
 
-    // GET /Matches
-
-    // EL GET ES UN ENDPOIMT: APIREST EN .NET 8 SE CONVIERTE UNA ACCION LLAMADA INDEX EN UN ENDPOINT, QUE SE PUEDE ACCEDER DESDE EL NAVEGADOR O DESDE UNA PETICION HTTP. EL ENDPOINT ES /MATCHES, YA QUE EL CONTROLADOR SE LLAMA MATCHESCONTROLLER Y LA ACCION SE LLAMA INDEX. SI SE QUIERE ACCEDER A ESTE ENDPOINT DESDE EL NAVEGADOR, SE PUEDE ESCRIBIR LA URL: https://localhost:5001/Matches (O EL PUERTO QUE ESTÉ UTILIZANDO EL PROYECTO). SI SE QUIERE ACCEDER A ESTE ENDPOINT DESDE UNA PETICION HTTP, SE PUEDE UTILIZAR POSTMAN O CUALQUIER OTRO CLIENTE HTTP PARA HACER UNA PETICION GET A LA URL: https://localhost:5001/Matches.
-    public async Task<IActionResult> Index()// INDEX: TODOS LOS CONTROLADORES DE ASP.NET QUE ES EL DASHBOARD DE LOS PARTIDOS, SE LLAMA INDEX POR CONVENCION, YA QUE ES LA ACCION PRINCIPAL DEL CONTROLADOR. SI SE QUIERE ACCEDER A ESTE ENDPOINT DESDE EL NAVEGADOR, SE PUEDE ESCRIBIR LA URL: https://localhost:5001/Matches (O EL PUERTO QUE ESTÉ UTILIZANDO EL PROYECTO). SI SE QUIERE ACCEDER A ESTE ENDPOINT DESDE UNA PETICION HTTP, SE PUEDE UTILIZAR POSTMAN O CUALQUIER OTRO CLIENTE HTTP PARA HACER UNA PETICION GET A LA URL: https://localhost:5001/Matches.
+    // GET /Matches  or  /Matches?status=Scheduled
+    public async Task<IActionResult> Index(MatchStatus? status)
     {
-        var board = await _matchService.GetBoardAsync();
+        ViewBag.CurrentStatus = status;
+        var board = await _matchService.GetBoardAsync(status);
         return View(board);
+    }
+
+    // GET /Matches/Detail/3
+    public async Task<IActionResult> Detail(int id)
+    {
+        var match = await _matchService.GetDetailAsync(id);
+        if (match is null) return NotFound();   // HTTP 404
+        return View(match);
     }
 }
