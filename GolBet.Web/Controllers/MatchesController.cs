@@ -20,11 +20,12 @@ public class MatchesController : Controller
         _teamService = teamService;
     }
 
-    // GET /Matches  or  /Matches?status=Scheduled
-    public async Task<IActionResult> Index(MatchStatus? status)
+    // GET /Matches  or  /Matches?status=Scheduled  or  /Matches?texto=nacional
+    public async Task<IActionResult> Index(MatchStatus? status, string? texto)
     {
         ViewBag.CurrentStatus = status;
-        var board = await _matchService.GetBoardAsync(status);
+        ViewBag.CurrentText = texto;
+        var board = await _matchService.GetBoardAsync(status, texto);
         return View(board);
     }
 
