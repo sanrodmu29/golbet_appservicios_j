@@ -11,7 +11,7 @@ public class MatchRepository : GenericRepository<Match>, IMatchRepository // MAT
 {
     public MatchRepository(AppDbContext context) : base(context) { }
 
-    public async Task<IEnumerable<Match>> GetAllWithTeamsAsync(MatchStatus? status = null)
+    public async Task<IEnumerable<Match>> GetAllWithTeamsAsync(MatchStatus? status = null, string? texto = null)
     {
         var query = _dbSet
             .Include(m => m.HomeTeam) // SIRVE PARA HACER UN JOIN(SQL) CON LA ENTIDAD RELACIONADA HomeTeam, PERMITIENDO OBTENER LOS DETALLES DEL EQUIPO LOCAL JUNTO CON EL PARTIDO
@@ -23,8 +23,11 @@ public class MatchRepository : GenericRepository<Match>, IMatchRepository // MAT
         if (status.HasValue)
             query = query.Where(m => m.Status == status.Value);
 
-        return await query.OrderBy(m => m.Date).ToListAsync();// RETORNA UNA LISTA DE PARTIDOS ORDENADOS POR FECHA, CON LOS DETALLES DE LOS EQUIPOS INCLUIDOS, FILTRADOS POR ESTADO SI SE PROPORCIONA UNO
-    }// ESTE METODO ES UTIL PARA OBTENER UNA LISTA DE PARTIDOS CON SUS EQUIPOS RELACIONADOS, POSIBILIDAD DE FILTRAR POR ESTADO Y ORDENADOS POR FECHA
+        if (!string.IsNullOrWhiteSpace(texto)) // COMPONE EL FILTRO DE BUSQUEDA POR NOMBRE DE EQUIPO (LOCAL O VISITANTE), SE TRADUCE A UN LIKE EN SQL
+            query = query.Where(m => m.HomeTeam.Name.Contains(texto) || m.AwayTeam.Name.Contains(texto));
+
+        return await query.OrderBy(m => m.Date).ToListAsync();// RETORNA UNA LISTA DE PARTIDOS ORDENADOS POR FECHA, CON LOS DETALLES DE LOS EQUIPOS INCLUIDOS, FILTRADOS POR ESTADO Y/O TEXTO DE BUSQUEDA SI SE PROPORCIONAN
+    }// ESTE METODO ES UTIL PARA OBTENER UNA LISTA DE PARTIDOS CON SUS EQUIPOS RELACIONADOS, POSIBILIDAD DE FILTRAR POR ESTADO Y/O BUSCAR POR EQUIPO Y ORDENADOS POR FECHA
 
     public async Task<Match?> GetByIdWithDetailsAsync(int id)
         => await _dbSet // BUSCA EL DBSET DE MATCHES, INCLUYE LOS DETALLES DE LOS EQUIPOS Y LAS APUESTAS RELACIONADAS, Y RETORNA EL PRIMER PARTIDO QUE COINCIDA CON EL ID PROPORCIONADO

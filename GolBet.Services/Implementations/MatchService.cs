@@ -21,9 +21,9 @@ public class MatchService : IMatchService
 
     // ---- Reads ----
 
-    public async Task<IEnumerable<MatchDto>> GetBoardAsync(MatchStatus? status = null)
+    public async Task<IEnumerable<MatchDto>> GetBoardAsync(MatchStatus? status = null, string? texto = null)
     {
-        var matches = await _matchRepository.GetAllWithTeamsAsync(status);
+        var matches = await _matchRepository.GetAllWithTeamsAsync(status, texto);
         return _mapper.Map<IEnumerable<MatchDto>>(matches);
     }
 
