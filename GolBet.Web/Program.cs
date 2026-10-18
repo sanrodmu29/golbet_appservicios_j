@@ -1,3 +1,4 @@
+using GolBet.Entities;
 using GolBet.Repositories.Data;
 using GolBet.Repositories.Implementations;
 using GolBet.Repositories.Interfaces;
@@ -5,6 +6,7 @@ using GolBet.Services.Implementations;
 using GolBet.Services.Interfaces;
 using GolBet.Services.Mapping;
 using System.Globalization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -24,6 +26,24 @@ builder.Services.AddControllersWithViews();
 //Este es el nuevo código 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// ASP.NET Core Identity (Module 7): users, roles, passwords and cookies
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    // Academic-friendly password policy (production would be stricter)
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireDigit = true;
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";            // anonymous hitting [Authorize]
+    options.AccessDeniedPath = "/Account/AccessDenied"; // wrong role
+});
 
 // Open generic registration: one line, a repository for every entity
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); // TYPEOF: QUIERE DECIR QUE CUALQUIER TIPO DE ENTIDAD QUE SE LE PASE, SE VA A RESOLVER CON LA IMPLEMENTACION GENERICA GenericRepository<T> PARA ESA ENTIDAD. ES DECIR, SI SE INYECTA IGenericRepository<Match>, SE VA A RESOLVER CON GenericRepository<Match>.
@@ -46,7 +66,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())   // SIRVE PARA LLAMAR AL SEEDER DE FORMA AUTOMATICA, PARA QUE CUANDO SE INICIE LA APLICACION, SE LLAME AL SEEDER Y SE LLENE LA BASE DE DATOS CON DATOS DE PRUEBA SI NO HAY DATOS. SI YA HAY DATOS, NO HACE NADA.
 {
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(context);
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+    await DbSeeder.SeedAsync(context, roleManager, userManager);
 }
 
 
@@ -65,6 +87,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Order matters: who are you? (cookie) BEFORE may you do this? (authorization)
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

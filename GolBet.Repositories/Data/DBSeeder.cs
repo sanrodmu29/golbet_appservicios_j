@@ -1,20 +1,33 @@
-﻿// GolBet.Repositories/Data/DbSeeder.cs
+// GolBet.Repositories/Data/DBSeeder.cs
 using GolBet.Entities;
 using GolBet.Entities.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace GolBet.Repositories.Data;
 
-public static class DbSeeder // ES STATIC PORQUE NO NECESITA INSTANCIARSE, SOLO SE USA PARA SEMBRAR DATOS INICIALES EN LA BASE DE DATOS
-                             // SOLO SIRVE PARA LLENAR LA BASE DE DATOS CON DATOS INICIALES, NO PARA OBTENER DATOS
-                             // ES UN METOR ASYNC PORQUE ESTÁ LLAMANDO LA BASE DE DATOS, QUE ES UNA OPERACION ASINCRONA, Y SE USA AWAIT PARA ESPERAR A QUE TERMINE LA OPERACION ANTES DE CONTINUAR
+public static class DbSeeder
 {
-    public static async Task SeedAsync(AppDbContext context)
+    // Role names as constants: a typo won't compile instead of failing silently
+    public const string AdminRole = "Admin";
+    public const string BettorRole = "Apostador";
+
+    public static async Task SeedAsync(
+        AppDbContext context,
+        RoleManager<IdentityRole> roleManager,
+        UserManager<AppUser> userManager)
     {
         // Applies any pending migration (creates the DB if it does not exist)
         await context.Database.MigrateAsync();
 
-        if (await context.Teams.AnyAsync()) return;   // idempotence guard  SIGNIFICA UN GUARDIA DE SEGURIDAD PARA QUE NO SE EJECUTE EL SEMBRADO DE DATOS SI YA EXISTEN DATOS EN LA TABLA TEAMS, PARA EVITAR DUPLICADOS
+        await SeedDomainAsync(context);
+        await SeedIdentityAsync(roleManager, userManager);
+    }
+
+    // ---- Domain data: teams and matches (Module 3) ----
+    private static async Task SeedDomainAsync(AppDbContext context)
+    {
+        if (await context.Teams.AnyAsync()) return;   // idempotence guard
 
         // ---- Teams ----
         var teams = new List<Team>
@@ -43,7 +56,7 @@ public static class DbSeeder // ES STATIC PORQUE NO NECESITA INSTANCIARSE, SOLO 
                 HomeTeamId = teams[0].Id, AwayTeamId = teams[1].Id,    // clásico paisa
                 Date = today.AddDays(3).AddHours(20),
                 Status = MatchStatus.Scheduled,
-                HomeOdds = 2.10m, DrawOdds = 3.20m, AwayOdds = 3.60m  // COMO ES UN DECIMAL, SE PONE LA M PARA QUEMAR Y NO SALGA ERROR 
+                HomeOdds = 2.10m, DrawOdds = 3.20m, AwayOdds = 3.60m
             },
             new()
             {
@@ -66,7 +79,7 @@ public static class DbSeeder // ES STATIC PORQUE NO NECESITA INSTANCIARSE, SOLO 
                 Status = MatchStatus.Scheduled,
                 HomeOdds = 1.85m, DrawOdds = 3.40m, AwayOdds = 4.20m
             },
- 
+
             // InProgress: betting closed, no result yet
             new()
             {
@@ -75,7 +88,7 @@ public static class DbSeeder // ES STATIC PORQUE NO NECESITA INSTANCIARSE, SOLO 
                 Status = MatchStatus.InProgress,
                 HomeOdds = 2.60m, DrawOdds = 3.05m, AwayOdds = 2.80m
             },
- 
+
             // Finished: has a final score
             new()
             {
@@ -89,5 +102,34 @@ public static class DbSeeder // ES STATIC PORQUE NO NECESITA INSTANCIARSE, SOLO 
 
         context.Matches.AddRange(matches);
         await context.SaveChangesAsync();
+    }
+
+    // ---- Identity data: roles and admin user (Module 7) ----
+    private static async Task SeedIdentityAsync(
+        RoleManager<IdentityRole> roleManager,
+        UserManager<AppUser> userManager)
+    {
+        // Roles (idempotent)
+        foreach (var role in new[] { AdminRole, BettorRole })
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+                await roleManager.CreateAsync(new IdentityRole(role));
+        }
+
+        // Admin user (idempotent)
+        if (await userManager.FindByEmailAsync("admin@golbet.com") is null)
+        {
+            var admin = new AppUser
+            {
+                UserName = "admin@golbet.com",
+                Email = "admin@golbet.com",
+                FullName = "Administrador GolBet",
+                Balance = 0m,            // admins manage, they do not bet
+                EmailConfirmed = true
+            };
+
+            await userManager.CreateAsync(admin, "Admin123*");
+            await userManager.AddToRoleAsync(admin, AdminRole);
+        }
     }
 }

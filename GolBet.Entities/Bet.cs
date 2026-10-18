@@ -25,5 +25,7 @@ public class Bet : AuditableEntity
     
     public Match Match { get; set; } = null!; // UNA APUESTA PERTENECE A UN SOLO PARTIDO, PERO UN PARTIDO PUEDE TENER MUCHAS APUESTAS, POR ESO ES UNA RELACION DE MUCHOS A UNO
 
-    // Module 7 will add:  public string UserId  +  AppUser User
+    // Module 7: the bettor. AspNetUsers.Id is a string, so the FK must be string too.
+    public string UserId { get; set; } = null!;
+    public AppUser User { get; set; } = null!;
 }
