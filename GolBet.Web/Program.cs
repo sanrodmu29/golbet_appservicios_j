@@ -49,6 +49,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>)); // TYPEOF: QUIERE DECIR QUE CUALQUIER TIPO DE ENTIDAD QUE SE LE PASE, SE VA A RESOLVER CON LA IMPLEMENTACION GENERICA GenericRepository<T> PARA ESA ENTIDAD. ES DECIR, SI SE INYECTA IGenericRepository<Match>, SE VA A RESOLVER CON GenericRepository<Match>.
 
 // Specific repositories
+builder.Services.AddScoped<IBetRepository, BetRepository>();
 builder.Services.AddScoped<IMatchRepository, MatchRepository>(); // RECIBE UN MATCH REPOSITORY, QUE ES UNA IMPLEMENTACION ESPECIFICA DE LA INTERFAZ IMatchRepository, HEREDANDO DE LA CLASE GENERICA GenericRepository<Match>.
 
 // AutoMapper: scans the assembly containing MappingProfile for all profiles
@@ -57,6 +58,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 // Business services
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<IBetService, BetService>();
 
 
 var app = builder.Build();
