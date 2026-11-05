@@ -13,11 +13,13 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Spanish (Colombia) dates, but "." as decimal separator so odds parse the same in forms and views
-var colombia = (CultureInfo)CultureInfo.GetCultureInfo("es-CO").Clone();
-colombia.NumberFormat.NumberDecimalSeparator = ".";
-CultureInfo.DefaultThreadCurrentCulture = colombia;
-CultureInfo.DefaultThreadCurrentUICulture = colombia;
+var culture = new CultureInfo("es-CO");
+// Dates in Spanish; numbers neutral so model binding reads "2.5" correctly
+culture.NumberFormat = (NumberFormatInfo)CultureInfo.InvariantCulture.NumberFormat.Clone();
+culture.NumberFormat.NumberGroupSeparator = "";   // "2,5" fails loudly, never binds as 25
+
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
