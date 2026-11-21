@@ -14,4 +14,8 @@ public interface IMatchService
     Task CreateAsync(MatchFormDto dto);
     Task UpdateAsync(MatchFormDto dto);
     Task DeactivateAsync(int id);
+
+    // Lifecycle and resolution (Module 9)
+    Task StartMatchAsync(int id);
+    Task<ResolutionSummaryDto> CloseMatchAsync(MatchResultFormDto dto);
 }
